@@ -49,14 +49,6 @@ public final class OnePingClient implements ClientModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
             dispatcher.register(ClientCommands.literal("oneping")
-                .then(ClientCommands.literal("region")
-                    .executes(context -> {
-                        context.getSource().sendFeedback(Component.literal(
-                            "[ONEPING] MCPVP Club recommendation: select EU. Your test: EU 133 ms, NA 294 ms (161 ms lower on EU)."));
-                        context.getSource().sendFeedback(Component.literal(
-                            "[ONEPING] This is a region recommendation only; select EU in the server's own region menu. Your ISP route can change results."));
-                        return 1;
-                    }))
                 .then(ClientCommands.literal("reset")
                     .executes(context -> {
                         samples.clear();
