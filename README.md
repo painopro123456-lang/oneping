@@ -9,14 +9,7 @@ A lightweight, client-side Fabric mod for Minecraft 26.2 focused on honest multi
 - Reports current ping, average, median, minimum, maximum, and average sample-to-sample variation (jitter).
 - `/oneping` prints the current connection report.
 - `/oneping reset` clears the history and starts a fresh measurement window.
-- `/oneping region` shows the recommended MCPVP Club region based on your measured results.
 - Does not send extra probe packets, modify game packets, spoof latency, or bypass server protections.
-
-## MCPVP Club region recommendation
-
-For your tested connection from Kuwait, use **EU** on MCPVP Club. Your reported measurements were **133 ms on EU** and **294 ms on NA**, making EU 161 ms lower in that test. Select EU using MCPVP Club's own in-game region selector; ONEPING does not send server-specific control packets or force a region. Re-test occasionally because ISP routing and server conditions can change.
-
-Run `/oneping region` in-game to see this recommendation.
 
 ## Important: what this mod can and cannot do
 
