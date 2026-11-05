@@ -1,34 +1,28 @@
 # ONEPING
 
-A lightweight, client-side Fabric mod for Minecraft **26.2**.
+A lightweight, client-side Fabric mod for Minecraft 26.2 focused on honest multiplayer latency diagnostics.
 
-## Commands
+## Features
 
-Run `/oneping` while connected to a multiplayer server.
+- Samples the server-reported player latency once per second.
+- Keeps a rolling 60-second history.
+- Reports current ping, average, median, minimum, maximum, and average sample-to-sample variation (jitter).
+- `/oneping` prints the current connection report.
+- `/oneping reset` clears the history and starts a fresh measurement window.
+- Does not send extra probe packets, modify game packets, spoof latency, or bypass server protections.
 
-ONEPING reports:
-- Current server-reported latency
-- Average latency over the recent sample window
-- Minimum and maximum latency
-- Jitter, calculated as the average change between consecutive samples
-- Number of samples collected (up to 30, sampled approximately once per second)
+## Important: what this mod can and cannot do
 
-The sample window resets when you disconnect.
+Minecraft's displayed multiplayer latency is a round-trip measurement involving your network route and the server. A client-only mod cannot shorten the physical route, fix Wi-Fi interference, change ISP routing, or make a slow server respond faster. ONEPING therefore does not promise fake or guaranteed ping reduction.
 
-## What it can and cannot optimize
-
-ONEPING does not fake ping, modify gameplay packets, bypass anti-cheat, or require server installation. It is designed to work as a normal client-side Fabric mod on multiplayer servers.
-
-A client mod cannot make the physical route to a server shorter or remove latency caused by distance, ISP routing, congestion, Wi-Fi interference, or server-side processing. Minecraft already uses low-latency TCP settings in its normal connection setup, so blindly toggling socket flags would not be a genuine optimization.
-
-The first release focuses on trustworthy measurements. Any future automatic network tuning will only be added if it produces a repeatable improvement in real tests and remains compatible with ordinary multiplayer servers.
+The mod's purpose is to show whether the connection is consistently slow or suffering from spikes. Use the measurements to identify whether a change to your network, router, connection type, or server region actually helps. The sampling itself adds no network traffic.
 
 ## Requirements
 
-- Minecraft Java Edition 26.2
+- Minecraft 26.2
 - Fabric Loader 0.19.5 or newer
-- Fabric API 0.161.0+26.2
-- Java 25
+- Fabric API for Minecraft 26.2
+- Java 25 or newer
 
 ## Build
 
@@ -39,6 +33,10 @@ gradle build
 ```
 
 The mod JAR is generated in `build/libs/`.
+
+## Install
+
+Place the built `oneping-*.jar` file in your Minecraft instance's `mods` folder alongside Fabric API.
 
 ## License
 
