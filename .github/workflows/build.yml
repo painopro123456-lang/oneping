@@ -27,8 +27,13 @@ jobs:
         with:
           gradle-version: '9.7.1'
 
+      - name: Verify toolchain
+        run: |
+          java -version
+          gradle --version
+
       - name: Build mod
-        run: gradle build --no-daemon
+        run: gradle build --no-daemon --stacktrace
 
       - name: Upload mod JAR
         uses: actions/upload-artifact@v4
