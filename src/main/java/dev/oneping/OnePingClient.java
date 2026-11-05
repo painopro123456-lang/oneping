@@ -1,8 +1,8 @@
 package dev.oneping;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
@@ -11,7 +11,7 @@ public final class OnePingClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-            dispatcher.register(ClientCommandManager.literal("oneping")
+            dispatcher.register(LiteralArgumentBuilder.<net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource>literal("oneping")
                 .executes(context -> {
                     Minecraft client = Minecraft.getInstance();
 
@@ -37,7 +37,9 @@ public final class OnePingClient implements ClientModInitializer {
                     context.getSource().sendFeedback(Component.literal(
                         "[ONEPING] Server-reported latency: " + latency + " ms (" + quality + ")."));
                     context.getSource().sendFeedback(Component.literal(
-                        "[ONEPING] This is a measurement, not a modified/faked ping value."));
+                        "[ONEPING] This is a real server-reported measurement; it is not modified."));
+                    context.getSource().sendFeedback(Component.literal(
+                        "[ONEPING] For lower latency, use Ethernet/strong Wi-Fi and close bandwidth-heavy downloads."));
                     return 1;
                 }))
         );
