@@ -1,7 +1,10 @@
 package dev.oneping;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.List;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -13,17 +16,15 @@ import net.minecraft.network.chat.Component;
 
 public final class OnePingClient implements ClientModInitializer {
     private static final int SAMPLE_INTERVAL_TICKS = 20;
-    private static final int MAX_SAMPLES = 30;
+    private static final int MAX_SAMPLES = 60;
     private static final Deque<Integer> samples = new ArrayDeque<>();
-    private static int ticksUntilSample = 0;
-    private static int previousPing = -1;
+    private static int ticksUntilSample;
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.getConnection() == null) {
                 samples.clear();
-                previousPing = -1;
                 ticksUntilSample = 0;
                 return;
             }
@@ -38,18 +39,24 @@ public final class OnePingClient implements ClientModInitializer {
                 return;
             }
 
-            int ping = Math.max(0, info.getLatency());
-            if (samples.isEmpty() || ping != previousPing) {
-                samples.addLast(ping);
-                previousPing = ping;
-                while (samples.size() > MAX_SAMPLES) {
-                    samples.removeFirst();
-                }
+            // Sample every second, including repeated values, so averages describe time
+            // rather than only moments when the server's displayed ping changes.
+            samples.addLast(Math.max(0, info.getLatency()));
+            while (samples.size() > MAX_SAMPLES) {
+                samples.removeFirst();
             }
         });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) ->
             dispatcher.register(ClientCommands.literal("oneping")
+                .then(ClientCommands.literal("reset")
+                    .executes(context -> {
+                        samples.clear();
+                        ticksUntilSample = 0;
+                        context.getSource().sendFeedback(Component.literal(
+                            "[ONEPING] History cleared. Collecting fresh samples."));
+                        return 1;
+                    }))
                 .executes(context -> {
                     Minecraft client = Minecraft.getInstance();
 
@@ -71,17 +78,18 @@ public final class OnePingClient implements ClientModInitializer {
                         samples.add(current);
                     }
 
-                    int min = Integer.MAX_VALUE;
-                    int max = Integer.MIN_VALUE;
+                    List<Integer> sorted = new ArrayList<>(samples);
+                    Collections.sort(sorted);
+                    int min = sorted.get(0);
+                    int max = sorted.get(sorted.size() - 1);
+                    int median = sorted.get(sorted.size() / 2);
                     long total = 0;
                     long variationTotal = 0;
-                    int previous = -1;
+                    Integer previous = null;
 
                     for (int sample : samples) {
-                        min = Math.min(min, sample);
-                        max = Math.max(max, sample);
                         total += sample;
-                        if (previous >= 0) {
+                        if (previous != null) {
                             variationTotal += Math.abs(sample - previous);
                         }
                         previous = sample;
@@ -101,13 +109,13 @@ public final class OnePingClient implements ClientModInitializer {
                     context.getSource().sendFeedback(Component.literal(
                         "[ONEPING] Current: " + current + " ms (" + quality + ")"));
                     context.getSource().sendFeedback(Component.literal(
-                        "[ONEPING] Average: " + average + " ms | Min: " + min
-                            + " ms | Max: " + max + " ms"));
+                        "[ONEPING] 60s avg: " + average + " ms | Median: " + median
+                            + " ms | Min: " + min + " ms | Max: " + max + " ms"));
                     context.getSource().sendFeedback(Component.literal(
                         "[ONEPING] Jitter: " + jitter + " ms | Samples: " + count
                             + "/" + MAX_SAMPLES));
                     context.getSource().sendFeedback(Component.literal(
-                        "[ONEPING] Readings are real server-reported latency; nothing is spoofed."));
+                        "[ONEPING] Use /oneping reset to clear history. Measurements are real; ping is never spoofed."));
                     return 1;
                 }))
         );
